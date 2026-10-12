@@ -1,0 +1,581 @@
+diff --git a/node_modules/frappe-ui/frappe/Help/HelpModal.vue b/node_modules/frappe-ui/frappe/Help/HelpModal.vue
+index 3e17c76..27d9ffd 100644
+--- a/node_modules/frappe-ui/frappe/Help/HelpModal.vue
++++ b/node_modules/frappe-ui/frappe/Help/HelpModal.vue
+@@ -106,14 +106,19 @@ const { syncStatus, resetAll, isOnboardingStepsCompleted } = useOnboarding(
+   props.appName,
+ )
+ 
++// 组件脚本里拿不到模板的全局 __（由宿主 app 注入到 window），
++// 这里延迟读取，取不到时回退成原文，避免破坏渲染。
++const __ = (message, args) =>
++  globalThis.__ ? globalThis.__(message, args) : message
++
+ const show = defineModel()
+ const articles = defineModel('articles')
+ 
+ const headingTitle = computed(() => {
+   if (!isOnboardingStepsCompleted.value && !showHelpCenter.value) {
+-    return 'Getting started'
++    return __("Getting started")
+   } else if (showHelpCenter.value) {
+-    return 'Help center'
++    return __("Help center")
+   }
+ })
+ 
+@@ -121,7 +126,7 @@ const options = computed(() => {
+   let items = [
+     {
+       icon: StepsIcon,
+-      label: 'Reset onboarding steps',
++      label: __("Reset onboarding steps"),
+       onClick: resetOnboardingSteps,
+       condition: () => showHelpCenter.value && isOnboardingStepsCompleted.value,
+     },
+@@ -134,7 +139,7 @@ const footerItems = computed(() => {
+   let items = [
+     {
+       icon: HelpIcon,
+-      label: 'Help centre',
++      label: __("Help centre"),
+       onClick: () => {
+         syncStatus()
+         showHelpCenter.value = true
+@@ -143,7 +148,7 @@ const footerItems = computed(() => {
+     },
+     {
+       icon: StepsIcon,
+-      label: 'Getting started',
++      label: __("Getting started"),
+       onClick: () => (showHelpCenter.value = false),
+       condition: showHelpCenter.value && !isOnboardingStepsCompleted.value,
+     },
+diff --git a/node_modules/frappe-ui/frappe/Onboarding/GettingStartedBanner.vue b/node_modules/frappe-ui/frappe/Onboarding/GettingStartedBanner.vue
+index 425d1ee..fc9ae18 100644
+--- a/node_modules/frappe-ui/frappe/Onboarding/GettingStartedBanner.vue
++++ b/node_modules/frappe-ui/frappe/Onboarding/GettingStartedBanner.vue
+@@ -10,10 +10,10 @@
+       <StepsIcon class="h-4 my-0.5 shrink-0" />
+       <div class="flex flex-col text-p-sm gap-0.5">
+         <div class="font-medium">
+-          {{ 'Getting started' }}
++          {{ __("Getting started") }}
+         </div>
+         <div class="text-ink-gray-7">
+-          {{ `${stepsCompleted}/${totalSteps} steps` }}
++          {{ __("{0}/{1} steps", [stepsCompleted, totalSteps]) }}
+         </div>
+       </div>
+     </div>
+@@ -22,7 +22,7 @@
+         <div class="flex items-center gap-2 shrink-0">
+           <StepsIcon class="h-4 my-0.5" />
+           <div class="text-ink-gray-9 font-medium">
+-            {{ 'You are all set' }}
++            {{ __("You are all set") }}
+           </div>
+         </div>
+         <FeatherIcon
+@@ -37,12 +37,12 @@
+         />
+       </div>
+       <div class="text-p-sm text-ink-gray-7">
+-        {{ 'All steps are completed successfully' }}
++        {{ __("All steps are completed successfully") }}
+       </div>
+     </div>
+     <Button
+       v-if="stepsCompleted != totalSteps"
+-      :label="stepsCompleted == 0 ? 'Start now' : 'Continue'"
++      :label="stepsCompleted == 0 ? __('Start now') : __('Continue')"
+       theme="blue"
+       @click="openOnboarding"
+     >
+@@ -74,6 +74,12 @@ const props = defineProps({
+   },
+ })
+ 
++
++// 组件脚本里拿不到模板的全局 __（由宿主 app 注入到 window），
++// 这里延迟读取，取不到时回退成原文，避免破坏渲染。
++const __ = (message, args) =>
++  globalThis.__ ? globalThis.__(message, args) : message
++
+ const { stepsCompleted, totalSteps, isOnboardingStepsCompleted } =
+   useOnboarding(props.appName)
+ 
+diff --git a/node_modules/frappe-ui/frappe/Onboarding/IntermediateStepModal.vue b/node_modules/frappe-ui/frappe/Onboarding/IntermediateStepModal.vue
+index 8593ef1..007378c 100644
+--- a/node_modules/frappe-ui/frappe/Onboarding/IntermediateStepModal.vue
++++ b/node_modules/frappe-ui/frappe/Onboarding/IntermediateStepModal.vue
+@@ -26,6 +26,10 @@
+   </Dialog>
+ </template>
+ <script setup>
++// 组件脚本里拿不到模板的全局 __（由宿主 app 注入到 window），
++// 这里延迟读取，取不到时回退成原文，避免破坏渲染。
++const __ = (message, args) =>
++  globalThis.__ ? globalThis.__(message, args) : message
+ import { Dialog } from '../../src/components/Dialog'
+ import { computed } from 'vue'
+ 
+diff --git a/node_modules/frappe-ui/frappe/Onboarding/OnboardingSteps.vue b/node_modules/frappe-ui/frappe/Onboarding/OnboardingSteps.vue
+index 5f4b847..b63a31c 100644
+--- a/node_modules/frappe-ui/frappe/Onboarding/OnboardingSteps.vue
++++ b/node_modules/frappe-ui/frappe/Onboarding/OnboardingSteps.vue
+@@ -2,16 +2,16 @@
+   <div class="flex flex-col justify-center items-center gap-1 mt-4 mb-7">
+     <component :is="logo" class="size-10 shrink-0 rounded mb-4" />
+     <div class="text-base font-medium">
+-      {{ 'Welcome to ' + title }}
++      {{ __("Welcome to {0}", [title]) }}
+     </div>
+     <div class="text-p-base font-normal">
+-      {{ `${stepsCompleted}/${totalSteps} steps completed` }}
++      {{ __("{0}/{1} steps completed", [stepsCompleted, totalSteps]) }}
+     </div>
+   </div>
+   <div class="flex flex-col gap-2.5 overflow-hidden">
+     <div class="flex justify-between items-center py-0.5">
+       <Badge
+-        :label="`${completedPercentage}% completed`"
++        :label="__('{0}% completed', [completedPercentage])"
+         :theme="completedPercentage == 100 ? 'green' : 'orange'"
+         size="lg"
+       />
+@@ -19,13 +19,13 @@
+         <Button
+           v-if="completedPercentage != 0"
+           variant="ghost"
+-          :label="'Reset all'"
++          :label="__('Reset all')"
+           @click="() => resetAll(afterResetAll)"
+         />
+         <Button
+           v-if="completedPercentage != 100"
+           variant="ghost"
+-          :label="'Skip all'"
++          :label="__('Skip all')"
+           @click="() => skipAll(afterSkipAll)"
+         />
+       </div>
+@@ -61,13 +61,13 @@
+         </component>
+         <Button
+           v-if="!step.completed && !isDependent(step)"
+-          :label="'Skip'"
++          :label="__('Skip')"
+           class="!h-4 text-xs !text-ink-gray-6 hidden group-hover:flex"
+           @click="() => skip(step.name, afterSkip)"
+         />
+         <Button
+           v-else-if="!isDependent(step)"
+-          :label="'Reset'"
++          :label="__('Reset')"
+           class="!h-4 text-xs !text-ink-gray-6 hidden group-hover:flex"
+           @click.stop="() => reset(step.name, afterReset)"
+         />
+@@ -112,6 +112,11 @@ const props = defineProps({
+   },
+ })
+ 
++// 组件脚本里拿不到模板的全局 __（由宿主 app 注入到 window），
++// 这里延迟读取，取不到时回退成原文，避免破坏渲染。
++const __ = (message, args) =>
++  globalThis.__ ? globalThis.__(message, args) : message
++
+ function isDependent(step) {
+   if (step.dependsOn && !step.completed) {
+     const dependsOnStep = steps.find((s) => s.name === step.dependsOn)
+@@ -126,7 +131,7 @@ function dependsOnTooltip(step) {
+   if (step.dependsOn && !step.completed) {
+     const dependsOnStep = steps.find((s) => s.name === step.dependsOn)
+     if (dependsOnStep && !dependsOnStep.completed) {
+-      return `You need to complete "${dependsOnStep.title}" first.`
++      return __("You need to complete \"{0}\" first.", [dependsOnStep.title])
+     }
+   }
+   return ''
+diff --git a/node_modules/frappe-ui/src/components/Alert/Alert.vue b/node_modules/frappe-ui/src/components/Alert/Alert.vue
+index a32e0e9..44094d0 100644
+--- a/node_modules/frappe-ui/src/components/Alert/Alert.vue
++++ b/node_modules/frappe-ui/src/components/Alert/Alert.vue
+@@ -81,7 +81,7 @@ defineSlots<{
+     <button
+       v-if="props.dismissible"
+       type="button"
+-      aria-label="Dismiss"
++      :aria-label="__('Dismiss')"
+       @click="dismissAlert"
+     >
+       <span class="lucide-x size-4 text-ink-gray-6" aria-hidden="true" />
+diff --git a/node_modules/frappe-ui/src/components/Autocomplete/Autocomplete.vue b/node_modules/frappe-ui/src/components/Autocomplete/Autocomplete.vue
+index d84a720..f802fe5 100644
+--- a/node_modules/frappe-ui/src/components/Autocomplete/Autocomplete.vue
++++ b/node_modules/frappe-ui/src/components/Autocomplete/Autocomplete.vue
+@@ -79,7 +79,7 @@
+                     :value="query"
+                     @change="query = $event.target.value"
+                     autocomplete="off"
+-                    placeholder="Search"
++                    :placeholder="__('Search')"
+                   />
+                   <div
+                     class="absolute right-0 inline-flex h-7 w-7 items-center justify-center"
+@@ -182,17 +182,17 @@
+                 <div v-if="multiple" class="flex items-center justify-end">
+                   <Button
+                     v-if="!areAllOptionsSelected"
+-                    label="Select All"
++                    :label="__('Select All')"
+                     @click.stop="selectAll"
+                   />
+                   <Button
+                     v-if="areAllOptionsSelected"
+-                    label="Clear All"
++                    :label="__('Clear All')"
+                     @click.stop="clearAll"
+                   />
+                 </div>
+                 <div v-else class="flex items-center justify-end">
+-                  <Button label="Clear" @click.stop="clearAll" />
++                  <Button :label="__('Clear')" @click.stop="clearAll" />
+                 </div>
+               </slot>
+             </div>
+diff --git a/node_modules/frappe-ui/src/components/Combobox/Combobox.vue b/node_modules/frappe-ui/src/components/Combobox/Combobox.vue
+index d78d5a5..ef1dd85 100644
+--- a/node_modules/frappe-ui/src/components/Combobox/Combobox.vue
++++ b/node_modules/frappe-ui/src/components/Combobox/Combobox.vue
+@@ -1,4 +1,8 @@
+ <script setup lang="ts">
++// 组件脚本里拿不到模板的全局 __（由宿主 app 注入到 window），
++// 这里延迟读取，取不到时回退成原文，避免破坏渲染。
++const __ = (message, args) =>
++  globalThis.__ ? globalThis.__(message, args) : message
+ import {
+   computed,
+   nextTick,
+diff --git a/node_modules/frappe-ui/src/components/DatePicker/DatePicker.vue b/node_modules/frappe-ui/src/components/DatePicker/DatePicker.vue
+index 86bd7d4..7ccbcb6 100644
+--- a/node_modules/frappe-ui/src/components/DatePicker/DatePicker.vue
++++ b/node_modules/frappe-ui/src/components/DatePicker/DatePicker.vue
+@@ -41,7 +41,7 @@
+         <aside
+           v-if="$slots.actions"
+           data-slot="actions"
+-          aria-label="Shortcuts"
++          :aria-label="__('Shortcuts')"
+           class="flex flex-col p-2 gap-0.5"
+         >
+           <slot
+@@ -79,6 +79,10 @@
+ </template>
+ 
+ <script setup lang="ts">
++// 组件脚本里拿不到模板的全局 __（由宿主 app 注入到 window），
++// 这里延迟读取，取不到时回退成原文，避免破坏渲染。
++const __ = (message, args) =>
++  globalThis.__ ? globalThis.__(message, args) : message
+ import { ref, computed, nextTick, watch } from 'vue'
+ import { dayjs, dayjsLocal } from '../../utils/dayjs'
+ import { generateWeeks } from './utils'
+diff --git a/node_modules/frappe-ui/src/components/DatePicker/DateRangePicker.vue b/node_modules/frappe-ui/src/components/DatePicker/DateRangePicker.vue
+index 144546b..681ddd0 100644
+--- a/node_modules/frappe-ui/src/components/DatePicker/DateRangePicker.vue
++++ b/node_modules/frappe-ui/src/components/DatePicker/DateRangePicker.vue
+@@ -41,7 +41,7 @@
+         <aside
+           v-if="$slots.actions"
+           data-slot="actions"
+-          aria-label="Shortcuts"
++          :aria-label="__('Shortcuts')"
+           class="flex flex-col p-2 gap-0.5"
+         >
+           <slot
+@@ -110,6 +110,10 @@
+ </template>
+ 
+ <script setup lang="ts">
++// 组件脚本里拿不到模板的全局 __（由宿主 app 注入到 window），
++// 这里延迟读取，取不到时回退成原文，避免破坏渲染。
++const __ = (message, args) =>
++  globalThis.__ ? globalThis.__(message, args) : message
+ import { ref, computed, nextTick, watch } from 'vue'
+ import { dayjs, dayjsLocal } from '../../utils/dayjs'
+ import { generateWeeks } from './utils'
+diff --git a/node_modules/frappe-ui/src/components/DatePicker/DateTimePicker.vue b/node_modules/frappe-ui/src/components/DatePicker/DateTimePicker.vue
+index 0ec591f..5e92fa4 100644
+--- a/node_modules/frappe-ui/src/components/DatePicker/DateTimePicker.vue
++++ b/node_modules/frappe-ui/src/components/DatePicker/DateTimePicker.vue
+@@ -41,7 +41,7 @@
+         <aside
+           v-if="$slots.actions"
+           data-slot="actions"
+-          aria-label="Shortcuts"
++          :aria-label="__('Shortcuts')"
+           class="flex flex-col p-2 gap-0.5"
+         >
+           <slot
+@@ -82,7 +82,7 @@
+               :typeable="props.allowCustomTime"
+               side="bottom"
+               align="start"
+-              placeholder="Select time"
++              :placeholder="__('Select time')"
+               :min="computedMinTime"
+               :max="computedMaxTime"
+               @change="onTimeChange"
+@@ -95,6 +95,10 @@
+ </template>
+ 
+ <script setup lang="ts">
++// 组件脚本里拿不到模板的全局 __（由宿主 app 注入到 window），
++// 这里延迟读取，取不到时回退成原文，避免破坏渲染。
++const __ = (message, args) =>
++  globalThis.__ ? globalThis.__(message, args) : message
+ import { ref, computed, nextTick, watch } from 'vue'
+ import TimePicker from '../TimePicker/TimePicker.vue'
+ import { dayjs, dayjsLocal, dayjsSystem } from '../../utils/dayjs'
+diff --git a/node_modules/frappe-ui/src/components/Dialog/Dialog.vue b/node_modules/frappe-ui/src/components/Dialog/Dialog.vue
+index 900ad55..da5029b 100644
+--- a/node_modules/frappe-ui/src/components/Dialog/Dialog.vue
++++ b/node_modules/frappe-ui/src/components/Dialog/Dialog.vue
+@@ -84,7 +84,7 @@
+                         </DialogTitle>
+                       </div>
+                       <DialogClose v-if="resolved.showCloseButton" as-child>
+-                        <Button variant="ghost" label="Close">
++                        <Button variant="ghost" :label="__('Close')">
+                           <template #icon>
+                             <span class="lucide-x size-4 text-ink-gray-9" />
+                           </template>
+diff --git a/node_modules/frappe-ui/src/components/ListView/ListFooter.vue b/node_modules/frappe-ui/src/components/ListView/ListFooter.vue
+index 611ed0a..814553f 100644
+--- a/node_modules/frappe-ui/src/components/ListView/ListFooter.vue
++++ b/node_modules/frappe-ui/src/components/ListView/ListFooter.vue
+@@ -11,13 +11,13 @@
+         <div class="flex items-center">
+           <Button
+             v-if="showLoadMore"
+-            label="Load More"
++            :label="__('Load More')"
+             @click="emit('loadMore')"
+           />
+           <div v-if="showLoadMore" class="mx-3 h-[80%] border-l" />
+           <div class="flex items-center gap-1 text-base text-ink-gray-5">
+             <div>{{ options.rowCount || '0' }}</div>
+-            <div>of</div>
++            <div>{{ __('of') }}</div>
+             <div>{{ options.totalCount || '0' }}</div>
+           </div>
+         </div>
+diff --git a/node_modules/frappe-ui/src/components/ListView/ListView.vue b/node_modules/frappe-ui/src/components/ListView/ListView.vue
+index 95cbb14..4bbaa09 100644
+--- a/node_modules/frappe-ui/src/components/ListView/ListView.vue
++++ b/node_modules/frappe-ui/src/components/ListView/ListView.vue
+@@ -19,6 +19,10 @@
+ </template>
+ 
+ <script setup>
++// 组件脚本里拿不到模板的全局 __（由宿主 app 注入到 window），
++// 这里延迟读取，取不到时回退成原文，避免破坏渲染。
++const __ = (message, args) =>
++  globalThis.__ ? globalThis.__(message, args) : message
+ import ListEmptyState from './ListEmptyState.vue'
+ import ListHeader from './ListHeader.vue'
+ import ListRows from './ListRows.vue'
+diff --git a/node_modules/frappe-ui/src/components/MultiSelect/MultiSelect.vue b/node_modules/frappe-ui/src/components/MultiSelect/MultiSelect.vue
+index b8d1d2b..0e0548a 100644
+--- a/node_modules/frappe-ui/src/components/MultiSelect/MultiSelect.vue
++++ b/node_modules/frappe-ui/src/components/MultiSelect/MultiSelect.vue
+@@ -1,4 +1,8 @@
+ <script setup lang="ts">
++// 组件脚本里拿不到模板的全局 __（由宿主 app 注入到 window），
++// 这里延迟读取，取不到时回退成原文，避免破坏渲染。
++const __ = (message, args) =>
++  globalThis.__ ? globalThis.__(message, args) : message
+ import { computed, ref, useAttrs, useSlots, watch } from 'vue'
+ import {
+   ComboboxAnchor,
+@@ -428,6 +432,7 @@ defineSlots<MultiSelectSlots>()
+                   v-if="loading"
+                   class="size-4 shrink-0 text-ink-gray-5"
+                 />
++                <slot name="suffix" v-bind="slotProps" />
+               </div>
+ 
+               <MultiSelectResults
+diff --git a/node_modules/frappe-ui/src/components/Select/Select.vue b/node_modules/frappe-ui/src/components/Select/Select.vue
+index 4b106ec..a7440d8 100644
+--- a/node_modules/frappe-ui/src/components/Select/Select.vue
++++ b/node_modules/frappe-ui/src/components/Select/Select.vue
+@@ -1,4 +1,8 @@
+ <script setup lang="ts">
++// 组件脚本里拿不到模板的全局 __（由宿主 app 注入到 window），
++// 这里延迟读取，取不到时回退成原文，避免破坏渲染。
++const __ = (message, args) =>
++  globalThis.__ ? globalThis.__(message, args) : message
+ import { computed, useAttrs, useSlots } from 'vue'
+ import { useInputLabeling } from '../../composables/useInputLabeling'
+ import { useEmptyValueMapping } from '../shared/selection/useEmptyValueMapping'
+diff --git a/node_modules/frappe-ui/src/components/Sidebar/SidebarCollapseToggle.vue b/node_modules/frappe-ui/src/components/Sidebar/SidebarCollapseToggle.vue
+index d4e2a29..902b35e 100644
+--- a/node_modules/frappe-ui/src/components/Sidebar/SidebarCollapseToggle.vue
++++ b/node_modules/frappe-ui/src/components/Sidebar/SidebarCollapseToggle.vue
+@@ -1,5 +1,8 @@
+ <template>
+-  <SidebarItem :label="isCollapsed ? 'Expand' : 'Collapse'" @click="toggle">
++  <SidebarItem
++    :label="isCollapsed ? __('Expand') : __('Collapse')"
++    @click="toggle"
++  >
+     <template #prefix>
+       <span
+         class="lucide-panel-right-open size-4 text-ink-gray-6 transition-transform duration-300 ease-in-out"
+@@ -14,6 +17,11 @@ import { computed, inject } from 'vue'
+ import SidebarItem from './SidebarItem.vue'
+ import { sidebarCollapsedKey, sidebarToggleKey } from './types'
+ 
++// 组件脚本里拿不到模板的全局 __（由宿主 app 注入到 window），
++// 这里延迟读取，取不到时回退成原文，避免破坏渲染。
++const __ = (message, args) =>
++  globalThis.__ ? globalThis.__(message, args) : message
++
+ const isCollapsed = inject(
+   sidebarCollapsedKey,
+   computed(() => false),
+diff --git a/node_modules/frappe-ui/src/components/Toast/Toast.vue b/node_modules/frappe-ui/src/components/Toast/Toast.vue
+index f55d262..478e2ba 100644
+--- a/node_modules/frappe-ui/src/components/Toast/Toast.vue
++++ b/node_modules/frappe-ui/src/components/Toast/Toast.vue
+@@ -42,7 +42,7 @@
+       </ToastAction>
+       <ToastClose
+         v-if="closable"
+-        aria-label="Close"
++        :aria-label="__('Close')"
+         class="flex-shrink-0 rounded p-1 text-ink-base hover:text-ink-gray-3"
+       >
+         <span class="lucide-x size-4" />
+diff --git a/node_modules/frappe-ui/src/molecules/editor/SuggestionExtension.ts b/node_modules/frappe-ui/src/molecules/editor/SuggestionExtension.ts
+index 0b7069a..de2a3df 100644
+--- a/node_modules/frappe-ui/src/molecules/editor/SuggestionExtension.ts
++++ b/node_modules/frappe-ui/src/molecules/editor/SuggestionExtension.ts
+@@ -16,6 +16,7 @@ export type SuggestionExtensionOptions<TItem = any> = {
+   items: TItem[] | ((query: string) => TItem[] | Promise<TItem[]>)
+   component?: Component
+   floatingOptions?: SuggestionFloatingOptions
++  allowSpaces?: boolean
+   command: (props: { editor: Editor; item: TItem; range: SuggestionRange }) => void
+ }
+ 
+@@ -26,6 +27,7 @@ function buildSuggestionExtension<TItem = any>(options: SuggestionExtensionOptio
+       return {
+         suggestion: {
+           char: options.trigger,
++          allowSpaces: options.allowSpaces,
+           pluginKey: new PluginKey(options.name),
+           items: ({ query }: { query: string }) =>
+             typeof options.items === 'function' ? options.items(query) : options.items,
+diff --git a/node_modules/frappe-ui/src/molecules/editor/extensions/link/link-extension.ts b/node_modules/frappe-ui/src/molecules/editor/extensions/link/link-extension.ts
+index 1447ba9..b6aad68 100644
+--- a/node_modules/frappe-ui/src/molecules/editor/extensions/link/link-extension.ts
++++ b/node_modules/frappe-ui/src/molecules/editor/extensions/link/link-extension.ts
+@@ -45,6 +45,14 @@ export const LinkExtension = Link.extend({
+     }
+   },
+ 
++  // tiptap's Link mark is inclusive whenever `autolink` is on, so typing right
++  // after a link extends the mark onto the new text. Keep autolink (URL
++  // detection as you type) but make the mark non-inclusive so the link stops at
++  // its boundary.
++  inclusive() {
++    return false
++  },
++
+   addCommands() {
+     return {
+       ...this.parent?.(),
+diff --git a/node_modules/frappe-ui/src/molecules/editor/extensions/shared/suggestion-renderer.ts b/node_modules/frappe-ui/src/molecules/editor/extensions/shared/suggestion-renderer.ts
+index 8363502..07f4551 100644
+--- a/node_modules/frappe-ui/src/molecules/editor/extensions/shared/suggestion-renderer.ts
++++ b/node_modules/frappe-ui/src/molecules/editor/extensions/shared/suggestion-renderer.ts
+@@ -82,6 +82,25 @@ export function createSuggestionRenderer(
+     })
+   }
+ 
++  // Attach the VueRenderer's mount wrapper (`el`), not `renderer.element` —
++  // FocusScope-based popups have no synchronous first element child.
++  function getWrapper(): HTMLElement | null {
++    return (renderer as unknown as { el: HTMLElement | null } | null)?.el ?? null
++  }
++
++  function attach(props: SuggestionProps, token: number): void {
++    if (!isActive || token !== renderToken || !renderer) return
++    if (floatingEl) return
++    const wrapper = getWrapper()
++    if (!props.clientRect || !wrapper) return
++
++    floatingEl = wrapper
++    floatingEl.style.position = 'absolute'
++    document.body.appendChild(floatingEl)
++    getReferenceClientRect = props.clientRect as () => DOMRect | null
++    updatePosition()
++  }
++
+   return {
+     onStart(props: SuggestionProps) {
+       isActive = true
+@@ -92,15 +111,7 @@ export function createSuggestionRenderer(
+         props,
+       })
+ 
+-      if (!props.clientRect || !renderer.element) return
+-      // A newer query already superseded this start before mount completed.
+-      if (token !== renderToken || !isActive) return
+-
+-      floatingEl = renderer.element as HTMLElement
+-      floatingEl.style.position = 'absolute'
+-      document.body.appendChild(floatingEl)
+-      getReferenceClientRect = props.clientRect as () => DOMRect | null
+-      updatePosition()
++      attach(props, token)
+     },
+ 
+     onUpdate(props: SuggestionProps) {
+@@ -108,14 +119,18 @@ export function createSuggestionRenderer(
+       if (!isActive || !renderer) return
+       const token = ++renderToken
+ 
+-      renderer.updateProps(props)
++      // Skip the plugin's transient `loading` dispatch (empty items) so the
++      // popover doesn't unmount/remount on every keystroke.
++      const loading = (props as SuggestionProps & { loading?: boolean }).loading
++      if (!loading) renderer.updateProps(props)
+ 
+       if (!props.clientRect) return
+       // Fix 2: a newer query bumped the token between updateProps and now.
+       if (token !== renderToken) return
+ 
+       getReferenceClientRect = props.clientRect as () => DOMRect | null
+-      updatePosition()
++      if (!floatingEl) attach(props, token)
++      else updatePosition()
+     },
+ 
+     onKeyDown(props: SuggestionKeyDownProps): boolean {
+diff --git a/node_modules/frappe-ui/src/molecules/list/ListHeader.vue b/node_modules/frappe-ui/src/molecules/list/ListHeader.vue
+index e74e3f9..f25092a 100644
+--- a/node_modules/frappe-ui/src/molecules/list/ListHeader.vue
++++ b/node_modules/frappe-ui/src/molecules/list/ListHeader.vue
+@@ -12,7 +12,7 @@
+         data-slot="list-header-checkbox"
+         role="checkbox"
+         :aria-checked="ariaChecked"
+-        aria-label="Select all"
++        :aria-label="__('Select all')"
+         tabindex="0"
+         @click.stop.prevent="context.toggleSelectAll"
+         @keydown.enter.prevent="context.toggleSelectAll"
